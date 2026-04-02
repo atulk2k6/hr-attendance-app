@@ -13,8 +13,9 @@ android/app/build/
 *.keystore
 
 # PC app
-pc/__pycache__/
-pc/*.pyc
+**/__pycache__/
+**/*.pyc
+**/*.pyo
 pc/.venv/
 pc/venv/
 pc/*.db
