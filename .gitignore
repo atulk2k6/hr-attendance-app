@@ -1,0 +1,27 @@
+# Android
+android/.gradle
+android/local.properties
+android/.idea
+android/.DS_Store
+android/build
+android/captures
+android/.externalNativeBuild
+android/.cxx
+android/app/build/
+*.iml
+*.jks
+*.keystore
+
+# PC app
+pc/__pycache__/
+pc/*.pyc
+pc/.venv/
+pc/venv/
+pc/*.db
+pc/dist/
+pc/build/
+pc/*.spec
+
+# General
+.DS_Store
+*.log
