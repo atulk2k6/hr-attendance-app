@@ -27,10 +27,11 @@ data class AttendanceEntry(
     val weeklyOffDay: Int,
     val inTime: String = "",
     val outTime: String = "",
-    val status: String = "P",
+    val status: String = "A",
     val otHours: Double = 0.0,
     val totalHours: Double = 0.0,
     val existingRecordId: Long = 0,
+    val createdAt: String = "",
     val remarks: String = "",
     val timeError: String? = null
 )
@@ -93,6 +94,7 @@ class AttendanceViewModel @Inject constructor(
                         otHours = existing.otHours,
                         totalHours = existing.totalHours,
                         existingRecordId = existing.id,
+                        createdAt = existing.createdAt,
                         remarks = existing.remarks
                     )
                 } else {
@@ -305,24 +307,23 @@ class AttendanceViewModel @Inject constructor(
         }
     }
 
-    fun markAllAbsent() {
+    // Marks ONLY employees with no existing record and no punched times as Absent
+    fun markUnpunchedAbsent() {
         viewModelScope.launch {
             val normalHours = settingsRepository.getNormalWorkHours()
             val entries = _uiState.value.entries.map { entry ->
-                val calc = OvertimeCalculator.calculate(
-                    inTime = entry.inTime,
-                    outTime = entry.outTime,
-                    normalWorkHours = normalHours,
-                    weeklyOffDay = entry.weeklyOffDay,
-                    date = _uiState.value.selectedDate
-                )
-                entry.copy(
-                    status = if (calc.status == "W") "W" else "A",
-                    inTime = "",
-                    outTime = "",
-                    totalHours = 0.0,
-                    otHours = 0.0
-                )
+                if (entry.existingRecordId == 0L && entry.inTime.isBlank() && entry.outTime.isBlank()) {
+                    val calc = OvertimeCalculator.calculate(
+                        inTime = "",
+                        outTime = "",
+                        normalWorkHours = normalHours,
+                        weeklyOffDay = entry.weeklyOffDay,
+                        date = _uiState.value.selectedDate
+                    )
+                    entry.copy(status = if (calc.status == "W") "W" else "A")
+                } else {
+                    entry  // don't touch employees who already have a record or times
+                }
             }
             _uiState.update { it.copy(entries = entries) }
         }
@@ -337,7 +338,16 @@ class AttendanceViewModel @Inject constructor(
             val now = DateUtils.now()
 
             val records = _uiState.value.entries
-                .filter { it.inTime.isNotBlank() || it.outTime.isNotBlank() || it.status != "P" }
+                .filter { entry ->
+                    // Save existing records (always update), and new records that have meaningful data
+                    entry.existingRecordId != 0L ||
+                    entry.inTime.isNotBlank() ||
+                    entry.outTime.isNotBlank() ||
+                    entry.remarks.isNotBlank() ||
+                    entry.status == "W" ||
+                    entry.status == "CO" ||
+                    entry.status == "P"
+                }
                 .map { entry ->
                     AttendanceRecordEntity(
                         id = entry.existingRecordId,
@@ -349,7 +359,7 @@ class AttendanceViewModel @Inject constructor(
                         totalHours = entry.totalHours,
                         otHours = entry.otHours,
                         remarks = entry.remarks,
-                        createdAt = if (entry.existingRecordId == 0L) now else "",
+                        createdAt = if (entry.existingRecordId == 0L) now else entry.createdAt,
                         updatedAt = now
                     )
                 }

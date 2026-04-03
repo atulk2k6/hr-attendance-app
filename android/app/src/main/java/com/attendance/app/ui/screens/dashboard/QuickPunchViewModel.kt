@@ -53,7 +53,8 @@ data class QuickPunchUiState(
     val isPunching: Boolean = false,
     val punchSuccess: String? = null,
     val duplicatePunchWarning: String? = null,
-    val pendingPunchType: String? = null
+    val pendingPunchType: String? = null,
+    val dailyReportText: String? = null
 )
 
 @HiltViewModel
@@ -129,7 +130,7 @@ class QuickPunchViewModel @Inject constructor(
                         currentDate = DateUtils.today()
                     )
                 }
-                delay(30_000L)
+                delay(5_000L)
             }
         }
     }
@@ -405,6 +406,34 @@ class QuickPunchViewModel @Inject constructor(
 
     fun clearPunchSuccess() {
         _uiState.update { it.copy(punchSuccess = null) }
+    }
+
+    fun generateDailyReport() {
+        viewModelScope.launch {
+            val today = DateUtils.today()
+            val punches = punchLogDao.getRecentByDate(today, 200).first()
+            val companyName = settingsRepository.getCompanyName()
+
+            val sb = StringBuilder()
+            sb.appendLine("*ATTENDANCE REPORT — $today*")
+            if (companyName.isNotBlank()) sb.appendLine(companyName)
+            sb.appendLine("Present: ${_uiState.value.todayStats.presentCount} | Punched In: ${_uiState.value.todayStats.totalPunchedIn}")
+            sb.appendLine()
+
+            val grouped = punches.groupBy { it.employeeCode }
+            grouped.forEach { (code, empPunches) ->
+                val name = empPunches.first().employeeName
+                val firstIn = empPunches.filter { it.punchType == "IN" }.minByOrNull { it.time }?.time ?: "-"
+                val lastOut = empPunches.filter { it.punchType == "OUT" }.maxByOrNull { it.time }?.time ?: "-"
+                sb.appendLine("$code $name  IN:$firstIn  OUT:$lastOut")
+            }
+
+            _uiState.update { it.copy(dailyReportText = sb.toString()) }
+        }
+    }
+
+    fun clearDailyReport() {
+        _uiState.update { it.copy(dailyReportText = null) }
     }
 
     private fun computeAdjustedTime(baseTime: String, adjustmentMinutes: Int): String {

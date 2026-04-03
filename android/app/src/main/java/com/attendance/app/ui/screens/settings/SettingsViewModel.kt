@@ -18,6 +18,9 @@ data class SettingsUiState(
     val autoBackupEnabled: Boolean = true,
     val backupFolderPath: String = "Documents/AttendanceApp/backups/",
     val appVersion: String = "1.0",
+    val kioskPin: String = "",
+    val kioskAutoResetSeconds: String = "5",
+    val showKioskPin: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -39,6 +42,8 @@ class SettingsViewModel @Inject constructor(
             val unitNumber = settingsRepository.getUnitNumber()
             val normalWorkHours = settingsRepository.getNormalWorkHours()
             val autoBackup = settingsRepository.isAutoBackupEnabled()
+            val kioskPin = settingsRepository.getKioskPin()
+            val kioskAutoReset = settingsRepository.getKioskAutoResetSeconds()
 
             _uiState.update {
                 it.copy(
@@ -46,6 +51,8 @@ class SettingsViewModel @Inject constructor(
                     unitNumber = unitNumber,
                     normalWorkHours = normalWorkHours.toString(),
                     autoBackupEnabled = autoBackup,
+                    kioskPin = kioskPin,
+                    kioskAutoResetSeconds = kioskAutoReset.toString(),
                     isLoading = false
                 )
             }
@@ -79,5 +86,24 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setAutoBackupEnabled(enabled)
         }
+    }
+
+    fun setKioskPin(pin: String) {
+        _uiState.update { it.copy(kioskPin = pin) }
+        viewModelScope.launch {
+            settingsRepository.setKioskPin(pin)
+        }
+    }
+
+    fun setKioskAutoResetSeconds(seconds: String) {
+        _uiState.update { it.copy(kioskAutoResetSeconds = seconds) }
+        val parsed = seconds.toIntOrNull() ?: return
+        viewModelScope.launch {
+            settingsRepository.setKioskAutoResetSeconds(parsed)
+        }
+    }
+
+    fun toggleKioskPinVisibility() {
+        _uiState.update { it.copy(showKioskPin = !it.showKioskPin) }
     }
 }

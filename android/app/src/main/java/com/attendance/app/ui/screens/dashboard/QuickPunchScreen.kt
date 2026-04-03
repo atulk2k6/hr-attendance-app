@@ -36,7 +36,9 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Tablet
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -107,6 +109,7 @@ fun QuickPunchScreen(
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val focusRequester = remember { FocusRequester() }
+    val context = LocalContext.current
 
     // Flash color for punch feedback
     var punchFlashColor by remember { mutableStateOf(Color.Transparent) }
@@ -126,6 +129,19 @@ fun QuickPunchScreen(
         state.punchSuccess?.let { msg ->
             snackbarHostState.showSnackbar(msg, duration = SnackbarDuration.Short)
             viewModel.clearPunchSuccess()
+        }
+    }
+
+    // Share daily report when ready
+    LaunchedEffect(state.dailyReportText) {
+        state.dailyReportText?.let { reportText ->
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_TEXT, reportText)
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "Attendance Report ${state.currentDate}")
+            }
+            context.startActivity(android.content.Intent.createChooser(intent, "Share Report"))
+            viewModel.clearDailyReport()
         }
     }
 
@@ -149,6 +165,9 @@ fun QuickPunchScreen(
             TopAppBar(
                 title = { Text("Attendance") },
                 actions = {
+                    IconButton(onClick = { viewModel.generateDailyReport() }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share today's report")
+                    }
                     IconButton(onClick = onNavigateToKioskMode) {
                         Icon(Icons.Default.Tablet, contentDescription = "Kiosk Mode")
                     }

@@ -18,6 +18,8 @@ class SettingsRepository @Inject constructor(
         private const val KEY_UNIT_NUMBER = "unit_number"
         private const val KEY_COMPANY_NAME = "company_name"
         private const val KEY_AUTO_BACKUP = "auto_backup_enabled"
+        const val KEY_KIOSK_PIN = "kiosk_pin"
+        const val KEY_KIOSK_AUTO_RESET = "kiosk_auto_clear_seconds"
 
         private const val DEFAULT_WORK_HOURS = 8.0
         private const val DEFAULT_UNIT_NUMBER = "1"
@@ -60,4 +62,16 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setAutoBackupEnabled(enabled: Boolean) =
         setValue(KEY_AUTO_BACKUP, if (enabled) "1" else "0")
+
+    suspend fun getKioskPin(): String =
+        settingsDao.getValue(KEY_KIOSK_PIN) ?: ""
+
+    suspend fun setKioskPin(pin: String) =
+        setValue(KEY_KIOSK_PIN, pin)
+
+    suspend fun getKioskAutoResetSeconds(): Int =
+        settingsDao.getValue(KEY_KIOSK_AUTO_RESET)?.toIntOrNull() ?: 5
+
+    suspend fun setKioskAutoResetSeconds(seconds: Int) =
+        setValue(KEY_KIOSK_AUTO_RESET, seconds.toString())
 }

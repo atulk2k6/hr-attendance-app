@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -123,6 +125,51 @@ fun SettingsScreen(
                     text = state.backupFolderPath,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Kiosk PIN
+            SettingsCard(
+                icon = Icons.Default.Lock,
+                title = "Kiosk PIN"
+            ) {
+                OutlinedTextField(
+                    value = state.kioskPin,
+                    onValueChange = { viewModel.setKioskPin(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Set PIN to lock kiosk exit") },
+                    visualTransformation = if (state.showKioskPin) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { viewModel.toggleKioskPinVisibility() }) {
+                            Icon(
+                                imageVector = if (state.showKioskPin) Icons.Default.VisibilityOff
+                                              else Icons.Default.Visibility,
+                                contentDescription = if (state.showKioskPin) "Hide PIN" else "Show PIN"
+                            )
+                        }
+                    },
+                    supportingText = {
+                        Text(if (state.kioskPin.isBlank()) "Leave blank to disable PIN lock" else "PIN set — required to exit kiosk")
+                    }
+                )
+            }
+
+            // Kiosk auto-reset
+            SettingsCard(
+                icon = Icons.Default.Timer,
+                title = "Kiosk Auto-Reset (seconds)"
+            ) {
+                OutlinedTextField(
+                    value = state.kioskAutoResetSeconds,
+                    onValueChange = { viewModel.setKioskAutoResetSeconds(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g., 5") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    supportingText = { Text("Seconds before kiosk resets after punch") }
                 )
             }
 

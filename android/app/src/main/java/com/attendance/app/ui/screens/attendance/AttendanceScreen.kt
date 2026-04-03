@@ -177,13 +177,13 @@ fun AttendanceScreen(
                     onClick = { viewModel.markAllPresent() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Mark All Present")
+                    Text("All Present")
                 }
-                OutlinedButton(
-                    onClick = { viewModel.markAllAbsent() },
+                Button(
+                    onClick = { viewModel.markUnpunchedAbsent() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Mark All Absent")
+                    Text("Mark Unpunched A")
                 }
             }
 
