@@ -349,7 +349,6 @@ class QuickPunchViewModel @Inject constructor(
             )
         }
     }
-    }
 
     private suspend fun updateAttendanceRecord(employee: EmployeeWithDetails, date: String) {
         val punches = punchLogDao.getByEmployeeAndDate(employee.id, date)
