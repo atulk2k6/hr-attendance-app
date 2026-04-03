@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Tablet
@@ -160,6 +161,8 @@ fun QuickPunchScreen(
         )
     }
 
+    var showOverflowMenu by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -170,6 +173,32 @@ fun QuickPunchScreen(
                     }
                     IconButton(onClick = onNavigateToKioskMode) {
                         Icon(Icons.Default.Tablet, contentDescription = "Kiosk Mode")
+                    }
+                    Box {
+                        IconButton(onClick = { showOverflowMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Monthly View") },
+                                onClick = { showOverflowMenu = false; onNavigateToMonthlyView() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Departments") },
+                                onClick = { showOverflowMenu = false; onNavigateToDepartments() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Categories") },
+                                onClick = { showOverflowMenu = false; onNavigateToCategories() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Units / Locations") },
+                                onClick = { showOverflowMenu = false; onNavigateToUnits() }
+                            )
+                        }
                     }
                 }
             )
